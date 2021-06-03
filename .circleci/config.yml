@@ -1,4 +1,7 @@
 version: 2.1
+
+
+
 jobs:
   create_and_deploy_front_end:
     docker:
@@ -7,9 +10,9 @@ jobs:
       - checkout
       - run: |
           aws cloudformation deploy \
-            --template-file bucket.yml \
-            --stack-name "${CIRCLE_WORKFLOW_ID}" \
-            --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID}"
+          --template-file bucket.yml \
+          --stack-name "${CIRCLE_WORKFLOW_ID}" \
+          --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID}"
       - run: aws s3 sync . s3://"${CIRCLE_WORKFLOW_ID}" --delete
 
   promote_to_production:
@@ -19,9 +22,9 @@ jobs:
       - checkout
       - run: |
           aws cloudformation deploy \
-            --template-file cloudformation.yml \
-            --stack-name cloudfront \
-            --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID}"
+          --template-file cloudformation.yml \
+          --stack-name cloudfront \
+          --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID}"
 
 
 workflows:
@@ -29,5 +32,5 @@ workflows:
     jobs:
       - create_and_deploy_front_end
       - promote_to_production
-          requires:
-            - create_and_deploy_front_end
+        requires:
+          - create_and_deploy_front_end
