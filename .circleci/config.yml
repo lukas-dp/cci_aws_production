@@ -16,10 +16,11 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run: aws cloudformation deploy \
-             --template-file bucket.yml \
-             --stack-name "${CIRCLE_WORKFLOW_ID:0:7}" \
-             --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run: |
+          aws cloudformation deploy \
+          --template-file bucket.yml \
+          --stack-name "${CIRCLE_WORKFLOW_ID:0:7}" \
+          --parameter-overrides NAME="${CIRCLE_WORKFLOW_ID:0:7}"
 
   get_last_deployment_id:
     docker:
@@ -34,10 +35,11 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run: aws cloudformation deploy \
-             --template-file cloudfront.yml \
-             --stack-name production-distro \
-             --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID}"
+      - run: |
+          aws cloudformation deploy \
+          --template-file cloudfront.yml \
+          --stack-name production-distro \
+          --parameter-overrides PipelineID="${CIRCLE_WORKFLOW_ID}"
 
   clean_up_old_front_end:
     docker:
@@ -45,8 +47,8 @@ jobs:
     steps:
       - checkout
       - run: |
-        aws s3 rm "s3://${OldPipelineID}" --recursive
-        aws cloudformation delete-stack --stack-name "${PreviousPipelineID}"
+          aws s3 rm "s3://${OldPipelineID}" --recursive
+          aws cloudformation delete-stack --stack-name "${PreviousPipelineID}"
 
 
 
@@ -55,10 +57,10 @@ workflows:
   production:
     jobs:
       - create_and_deploy_front_end
-      - get_last_deployment_id
+      - get_last_deployment_id:
           requires:
             - create_and_deploy_front_end
-      - promote_to_production
+      - promote_to_production:
           requires:
             - get_last_deployment_id
       - clean_up_old_front_end:
